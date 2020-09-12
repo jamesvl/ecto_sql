@@ -1111,7 +1111,7 @@ if Code.ensure_loaded?(Postgrex) do
     defp column_type(:identity, opts) do
       start_value = [Keyword.get(opts, :start_value)]
       increment   = [Keyword.get(opts, :increment)]
-      type_name   = ecto_to_db(:identity)
+      type_name   = Keyword.get(opts, :identity_type, :bigint) |> ecto_to_db()
 
       cleanup = fn v -> is_integer(v) and v > 0 end
 
@@ -1172,7 +1172,7 @@ if Code.ensure_loaded?(Postgrex) do
 
     defp reference_column_type(:serial, _opts), do: "integer"
     defp reference_column_type(:bigserial, _opts), do: "bigint"
-    defp reference_column_type(:identity, _opts), do: "bigint"
+    defp reference_column_type(:identity, _opts), do: Keyword.get(opts, :identity_type, :bigint) |> ecto_to_db()
     defp reference_column_type(type, opts), do: column_type(type, opts)
 
     defp reference_on_delete(:nilify_all), do: " ON DELETE SET NULL"
@@ -1279,7 +1279,7 @@ if Code.ensure_loaded?(Postgrex) do
 
     defp ecto_to_db({:array, t}),          do: [ecto_to_db(t), ?[, ?]]
     defp ecto_to_db(:id),                  do: "integer"
-    defp ecto_to_db(:identity),            do: "bigint"
+    defp ecto_to_db(:identity),            do: Application.get_env(:ecto_sql, :postgres_identity_type, "bigint")
     defp ecto_to_db(:serial),              do: "serial"
     defp ecto_to_db(:bigserial),           do: "bigserial"
     defp ecto_to_db(:binary_id),           do: "uuid"
